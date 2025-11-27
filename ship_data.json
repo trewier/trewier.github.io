@@ -1,0 +1,199 @@
+{
+  "ShipStats": [
+    { "id": "Raft", "name": "Raft", "speed": 1.5, "hp": 20, "level_sailing": 1, "level_con": 1 },
+    { "id": "Skiff", "name": "Skiff", "speed": 1.5, "hp": 30, "level_sailing": 1, "level_con": 1 },
+    { "id": "Sloop", "name": "Sloop", "speed": 1.5, "hp": 40, "level_sailing": 1, "level_con": 1 }
+  ],
+  "ComponentDefinitions": {
+    "HULL_DATA": [
+      {
+        "type": "Regular",
+        "qty_per_part": 5,
+        "total_parts": 10,
+        "parts": [
+          { "name": "Wooden Hull", "level_sailing": 1, "raw_material": "Plank" },
+          { "name": "Oak Hull", "level_sailing": 8, "raw_material": "Oak Plank" },
+          { "name": "Teak Hull", "level_sailing": 23, "raw_material": "Teak Plank" },
+          { "name": "Mahogany Hull", "level_sailing": 41, "raw_material": "Mahogany Plank" },
+          { "name": "Camphor Hull", "level_sailing": 59, "raw_material": "Camphor Plank" },
+          { "name": "Ironwood Hull", "level_sailing": 77, "raw_material": "Ironwood Plank" },
+          { "name": "Rosewood Hull", "level_sailing": 84, "raw_material": "Rosewood Plank" }
+        ]
+      },
+      {
+        "type": "Large",
+        "qty_per_part": 5,
+        "total_parts": 16,
+        "parts": [
+          { "name": "Wooden Hull", "level_sailing": 1, "raw_material": "Plank" },
+          { "name": "Oak Hull", "level_sailing": 8, "raw_material": "Oak Plank" },
+          { "name": "Teak Hull", "level_sailing": 23, "raw_material": "Teak Plank" },
+          { "name": "Mahogany Hull", "level_sailing": 41, "raw_material": "Mahogany Plank" },
+          { "name": "Camphor Hull", "level_sailing": 59, "raw_material": "Camphor Plank" },
+          { "name": "Ironwood Hull", "level_sailing": 77, "raw_material": "Ironwood Plank" },
+          { "name": "Rosewood Hull", "level_sailing": 84, "raw_material": "Rosewood Plank" }
+        ]
+      }
+    ],
+    "KEEL_DATA": [
+      {
+        "type": "Regular",
+        "qty_per_part": 5,
+        "total_parts": 10,
+        "parts": [
+          { "name": "Bronze Keel", "level_sailing": 10, "level_con": 10, "raw_material": "Bronze Bar" },
+          { "name": "Iron Keel", "level_sailing": 22, "level_con": 22, "raw_material": "Iron Bar" },
+          { "name": "Steel Keel", "level_sailing": 38, "level_con": 38, "raw_material": "Steel Bar" },
+          { "name": "Mithril Keel", "level_sailing": 56, "level_con": 56, "raw_material": "Mithril Bar" },
+          { "name": "Adamant Keel", "level_sailing": 74, "level_con": 74, "raw_material": "Adamantite Bar" },
+          { "name": "Rune Keel", "level_sailing": 86, "level_con": 86, "raw_material": "Runite Bar" },
+          { "name": "Dragon Keel", "level_sailing": 94, "level_con": 94, "raw_material": "Dragon Sheet" }
+        ]
+      },
+      {
+        "type": "Large",
+        "qty_per_part": 5,
+        "total_parts": 16,
+        "parts": [
+          { "name": "Bronze Keel", "level_sailing": 10, "level_con": 10, "raw_material": "Bronze Bar" },
+          { "name": "Iron Keel", "level_sailing": 22, "level_con": 22, "raw_material": "Iron Bar" },
+          { "name": "Steel Keel", "level_sailing": 38, "level_con": 38, "raw_material": "Steel Bar" },
+          { "name": "Mithril Keel", "level_sailing": 56, "level_con": 56, "raw_material": "Mithril Bar" },
+          { "name": "Adamant Keel", "level_sailing": 74, "level_con": 74, "raw_material": "Adamantite Bar" },
+          { "name": "Rune Keel", "level_sailing": 86, "level_con": 86, "raw_material": "Runite Bar" },
+          { "name": "Dragon Keel", "level_sailing": 94, "level_con": 94, "raw_material": "Dragon Sheet" }
+        ]
+      }
+    ],
+    "HELM_DATA": [
+      {
+        "type": "Regular",
+        "qty_per_part": 5,
+        "total_parts": 10,
+        "parts": [
+          { "name": "Bronze Helm", "level_sailing": 10, "level_con": 10, "raw_material": "Bronze Bar" },
+          { "name": "Iron Helm", "level_sailing": 22, "level_con": 22, "raw_material": "Iron Bar" },
+          { "name": "Steel Helm", "level_sailing": 38, "level_con": 38, "raw_material": "Steel Bar" },
+          { "name": "Mithril Helm", "level_sailing": 56, "level_con": 56, "raw_material": "Mithril Bar" },
+          { "name": "Adamant Helm", "level_sailing": 74, "level_con": 74, "raw_material": "Adamantite Bar" },
+          { "name": "Rune Helm", "level_sailing": 86, "level_con": 86, "raw_material": "Runite Bar" },
+          { "name": "Dragon Helm", "level_sailing": 94, "level_con": 94, "raw_material": "Dragon Sheet" }
+        ]
+      },
+      {
+        "type": "Large",
+        "qty_per_part": 5,
+        "total_parts": 16,
+        "parts": [
+          { "name": "Bronze Helm", "level_sailing": 10, "level_con": 10, "raw_material": "Bronze Bar" },
+          { "name": "Iron Helm", "level_sailing": 22, "level_con": 22, "raw_material": "Iron Bar" },
+          { "name": "Steel Helm", "level_sailing": 38, "level_con": 38, "raw_material": "Steel Bar" },
+          { "name": "Mithril Helm", "level_sailing": 56, "level_con": 56, "raw_material": "Mithril Bar" },
+          { "name": "Adamant Helm", "level_sailing": 74, "level_con": 74, "raw_material": "Adamantite Bar" },
+          { "name": "Rune Helm", "level_sailing": 86, "level_con": 86, "raw_material": "Runite Bar" },
+          { "name": "Dragon Helm", "level_sailing": 94, "level_con": 94, "raw_material": "Dragon Sheet" }
+        ]
+      }
+    ],
+    "KEEP_DATA": [
+      {
+        "type": "Regular",
+        "qty_per_part": 5,
+        "total_parts": 10,
+        "parts": [
+          { "name": "Bronze Keep", "level_sailing": 10, "level_con": 10, "raw_material": "Bronze Bar" },
+          { "name": "Iron Keep", "level_sailing": 22, "level_con": 22, "raw_material": "Iron Bar" },
+          { "name": "Steel Keep", "level_sailing": 38, "level_con": 38, "raw_material": "Steel Bar" },
+          { "name": "Mithril Keep", "level_sailing": 56, "level_con": 56, "raw_material": "Mithril Bar" },
+          { "name": "Adamant Keep", "level_sailing": 74, "level_con": 74, "raw_material": "Adamantite Bar" },
+          { "name": "Rune Keep", "level_sailing": 86, "level_con": 86, "raw_material": "Runite Bar" },
+          { "name": "Dragon Keep", "level_sailing": 94, "level_con": 94, "raw_material": "Dragon Sheet" }
+        ]
+      },
+      {
+        "type": "Large",
+        "qty_per_part": 5,
+        "total_parts": 16,
+        "parts": [
+          { "name": "Bronze Keep", "level_sailing": 10, "level_con": 10, "raw_material": "Bronze Bar" },
+          { "name": "Iron Keep", "level_sailing": 22, "level_con": 22, "raw_material": "Iron Bar" },
+          { "name": "Steel Keep", "level_sailing": 38, "level_con": 38, "raw_material": "Steel Bar" },
+          { "name": "Mithril Keep", "level_sailing": 56, "level_con": 56, "raw_material": "Mithril Bar" },
+          { "name": "Adamant Keep", "level_sailing": 74, "level_con": 74, "raw_material": "Adamantite Bar" },
+          { "name": "Rune Keep", "level_sailing": 86, "level_con": 86, "raw_material": "Runite Bar" },
+          { "name": "Dragon Keep", "level_sailing": 94, "level_con": 94, "raw_material": "Dragon Sheet" }
+        ]
+      }
+    ],
+    "SAIL_DATA": [
+      {
+        "type": "Regular",
+        "qty_per_part": 5,
+        "total_parts": 10,
+        "parts": [
+          { "name": "Canvas Sails", "level_sailing": 1, "level_con": 1, "raw_material": "Cotton Canvas" },
+          { "name": "Linen Sails", "level_sailing": 25, "level_con": 25, "raw_material": "Linen Fabric" },
+          { "name": "Silk Sails", "level_sailing": 50, "level_con": 50, "raw_material": "Silk Canvas" },
+          { "name": "Runic Sails", "level_sailing": 75, "level_con": 75, "raw_material": "Runic Fabric" },
+          { "name": "Dragon Hide Sails", "level_sailing": 90, "level_con": 90, "raw_material": "Dragon Hide Weave" }
+        ]
+      },
+      {
+        "type": "Large",
+        "qty_per_part": 5,
+        "total_parts": 16,
+        "parts": [
+          { "name": "Canvas Sails", "level_sailing": 1, "level_con": 1, "raw_material": "Cotton Canvas" },
+          { "name": "Linen Sails", "level_sailing": 25, "level_con": 25, "raw_material": "Linen Fabric" },
+          { "name": "Silk Sails", "level_sailing": 50, "level_con": 50, "raw_material": "Silk Canvas" },
+          { "name": "Runic Sails", "level_sailing": 75, "level_con": 75, "raw_material": "Runic Fabric" },
+          { "name": "Dragon Hide Sails", "level_sailing": 90, "level_con": 90, "raw_material": "Dragon Hide Weave" }
+        ]
+      }
+    ]
+  },
+  "FacilityDefinitions": [
+    { "name": "None", "level_sailing": 0, "level_con": 0, "raw_material": "None", "qty_per_part": 0, "total_parts": 0, "label": "None" },
+    { "name": "Eternal brazier", "level_sailing": 78, "level_con": 72, "raw_material": "Adamantite Bar", "qty_per_part": 15, "total_parts": 5, "label": "Eternal brazier" },
+    { "name": "Bronze cannon", "level_sailing": 28, "level_con": 21, "raw_material": "Bronze Bar", "qty_per_part": 8, "total_parts": 5, "label": "Bronze cannon" },
+    { "name": "Iron cannon", "level_sailing": 35, "level_con": 28, "raw_material": "Iron Bar", "qty_per_part": 8, "total_parts": 5, "label": "Iron cannon" },
+    { "name": "Steel cannon", "level_sailing": 47, "level_con": 39, "raw_material": "Steel Bar", "qty_per_part": 8, "total_parts": 5, "label": "Steel cannon" },
+    { "name": "Mithril cannon", "level_sailing": 57, "level_con": 50, "raw_material": "Mithril Bar", "qty_per_part": 8, "total_parts": 5, "label": "Mithril cannon" },
+    { "name": "Adamant cannon", "level_sailing": 69, "level_con": 61, "raw_material": "Adamantite Bar", "qty_per_part": 8, "total_parts": 5, "label": "Adamant cannon" },
+    { "name": "Rune cannon", "level_sailing": 80, "level_con": 76, "raw_material": "Runite Bar", "qty_per_part": 8, "total_parts": 5, "label": "Rune cannon" },
+    { "name": "Dragon cannon", "level_sailing": 92, "level_con": 84, "raw_material": "Dragon Sheet", "qty_per_part": 8, "total_parts": 5, "label": "Dragon cannon" },
+    { "name": "Bronze salvaging hook", "level_sailing": 15, "level_con": 1, "raw_material": "Bronze Bar", "qty_per_part": 6, "total_parts": 4, "label": "Bronze salvaging hook" },
+    { "name": "Iron salvaging hook", "level_sailing": 21, "level_con": 9, "raw_material": "Iron Bar", "qty_per_part": 6, "total_parts": 4, "label": "Iron salvaging hook" },
+    { "name": "Steel salvaging hook", "level_sailing": 27, "level_con": 18, "raw_material": "Steel Bar", "qty_per_part": 6, "total_parts": 4, "label": "Steel salvaging hook" },
+    { "name": "Mithril salvaging hook", "level_sailing": 44, "level_con": 30, "raw_material": "Mithril Bar", "qty_per_part": 6, "total_parts": 4, "label": "Mithril salvaging hook" },
+    { "name": "Adamant salvaging hook", "level_sailing": 59, "level_con": 52, "raw_material": "Adamantite Bar", "qty_per_part": 6, "total_parts": 4, "label": "Adamant salvaging hook" },
+    { "name": "Rune salvaging hook", "level_sailing": 74, "level_con": 66, "raw_material": "Runite Bar", "qty_per_part": 6, "total_parts": 4, "label": "Rune salvaging hook" },
+    { "name": "Dragon salvaging hook", "level_sailing": 86, "level_con": 78, "raw_material": "Dragon Sheet", "qty_per_part": 6, "total_parts": 4, "label": "Dragon salvaging hook" },
+    { "name": "Rope trawling net", "level_sailing": 56, "level_con": 45, "raw_material": "Rope", "qty_per_part": 5, "total_parts": 10, "label": "Rope trawling net" },
+    { "name": "Linen trawling net", "level_sailing": 65, "level_con": 61, "raw_material": "Linen Fabric", "qty_per_part": 5, "total_parts": 10, "label": "Linen trawling net" },
+    { "name": "Hemp trawling net", "level_sailing": 79, "level_con": 73, "raw_material": "Hemp Fabric", "qty_per_part": 5, "total_parts": 10, "label": "Hemp trawling net" },
+    { "name": "Cotton trawling net", "level_sailing": 84, "level_con": 73, "raw_material": "Cotton Canvas", "qty_per_part": 5, "total_parts": 10, "label": "Cotton trawling net" },
+    { "name": "Basic cargo hold", "level_sailing": 1, "level_con": 1, "raw_material": "Plank", "qty_per_part": 7, "total_parts": 6, "label": "Basic cargo hold" },
+    { "name": "Oak cargo hold", "level_sailing": 18, "level_con": 11, "raw_material": "Oak Plank", "qty_per_part": 7, "total_parts": 6, "label": "Oak cargo hold" },
+    { "name": "Teak cargo hold", "level_sailing": 29, "level_con": 21, "raw_material": "Teak Plank", "qty_per_part": 7, "total_parts": 6, "label": "Teak cargo hold" },
+    { "name": "Mahogany cargo hold", "level_sailing": 46, "level_con": 41, "raw_material": "Mahogany Plank", "qty_per_part": 7, "total_parts": 6, "label": "Mahogany cargo hold" },
+    { "name": "Camphor cargo hold", "level_sailing": 60, "level_con": 53, "raw_material": "Camphor Plank", "qty_per_part": 7, "total_parts": 6, "label": "Camphor cargo hold" },
+    { "name": "Ironwood cargo hold", "level_sailing": 80, "level_con": 77, "raw_material": "Ironwood Plank", "qty_per_part": 7, "total_parts": 6, "label": "Ironwood cargo hold" },
+    { "name": "Rosewood cargo hold", "level_sailing": 89, "level_con": 84, "raw_material": "Rosewood Plank", "qty_per_part": 7, "total_parts": 6, "label": "Rosewood cargo hold" },
+    { "name": "Range", "level_sailing": 16, "level_con": 6, "raw_material": "Clay", "qty_per_part": 10, "total_parts": 1, "label": "Range" },
+    { "name": "Keg", "level_sailing": 33, "level_con": 25, "raw_material": "Oak Plank", "qty_per_part": 10, "total_parts": 2, "label": "Keg" },
+    { "name": "Inoculation station", "level_sailing": 40, "level_con": 37, "raw_material": "Fine Wood", "qty_per_part": 15, "total_parts": 1, "label": "Inoculation station" },
+    { "name": "Salvaging station", "level_sailing": 42, "level_con": 34, "raw_material": "Iron Bar", "qty_per_part": 12, "total_parts": 1, "label": "Salvaging station" },
+    { "name": "Chum station", "level_sailing": 56, "level_con": 45, "raw_material": "Teak Plank", "qty_per_part": 10, "total_parts": 2, "label": "Chum station" },
+    { "name": "Advanced chum station", "level_sailing": 68, "level_con": 61, "raw_material": "Mahogany Plank", "qty_per_part": 15, "total_parts": 2, "label": "Advanced chum station" },
+    { "name": "Chum spreader", "level_sailing": 82, "level_con": 74, "raw_material": "Mithril Bar", "qty_per_part": 10, "total_parts": 3, "label": "Chum spreader" },
+    { "name": "Wind catcher", "level_sailing": 53, "level_con": 47, "raw_material": "Silk Canvas", "qty_per_part": 10, "total_parts": 2, "label": "Wind catcher" },
+    { "name": "Gale catcher", "level_sailing": 79, "level_con": 70, "raw_material": "Runic Fabric", "qty_per_part": 10, "total_parts": 2, "label": "Gale catcher" },
+    { "name": "Crystal extractor", "level_sailing": 73, "level_con": 67, "raw_material": "Adamantite Bar", "qty_per_part": 15, "total_parts": 1, "label": "Crystal extractor" },
+    { "name": "Anchor", "level_sailing": 37, "level_con": 29, "raw_material": "Steel Bar", "qty_per_part": 20, "total_parts": 1, "label": "Anchor" },
+    { "name": "Teleport focus", "level_sailing": 55, "level_con": 49, "raw_material": "Mithril Bar", "qty_per_part": 10, "total_parts": 2, "label": "Teleport focus" },
+    { "name": "Fathom stone", "level_sailing": 70, "level_con": 62, "raw_material": "Runite Bar", "qty_per_part": 15, "total_parts": 2, "label": "Fathom stone" },
+    { "name": "Greater teleport focus", "level_sailing": 75, "level_con": 69, "raw_material": "Dragon Sheet", "qty_per_part": 10, "total_parts": 2, "label": "Greater teleport focus" },
+    { "name": "Fathom pearl", "level_sailing": 91, "level_con": 83, "raw_material": "Rosewood Plank", "qty_per_part": 20, "total_parts": 2, "label": "Fathom pearl" }
+  ]
+}
