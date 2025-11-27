@@ -1,0 +1,77 @@
+:root {
+    --bg-primary: #000f1f;
+    --bg-secondary: #0a192f;
+    --bg-card: #112240;
+    --text-primary: #f0f0f0;
+    --link-color: #61bfff;
+    --border-color: #2e3b55;
+    --accent-color: #61bfff;
+    --button-bg: #223f66;
+    --button-hover: #335588;
+}
+
+body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    line-height: 1.6;
+}
+
+.calc-header {
+    background-color: var(--bg-secondary);
+    border-bottom: 2px solid var(--border-color);
+}
+
+.calc-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1.5rem;
+    border: 1px solid var(--border-color);
+}
+.calc-table th, .calc-table td {
+    border: 1px solid var(--border-color);
+    padding: 12px;
+    text-align: left;
+}
+.calc-table th {
+    background-color: var(--bg-secondary);
+    color: var(--accent-color);
+    font-weight: 600;
+}
+.calc-table tr:nth-child(even) {
+    background-color: #0a192f;
+}
+
+input[type="number"], select {
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    padding: 8px 12px;
+    border-radius: 4px;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+}
+input:focus, select:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 1px var(--accent-color);
+}
+
+.calc-button {
+    background-color: var(--button-bg);
+    color: var(--text-primary);
+    padding: 10px 20px;
+    border-radius: 4px;
+    font-weight: 600;
+    transition: background-color 0.2s, box-shadow 0.2s;
+    border: 1px solid var(--border-color);
+}
+.calc-button:hover {
+    background-color: var(--button-hover);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+}
+
+.accent-text {
+    color: var(--accent-color);
+}

@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Ship Component Builder</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Dark Theme Setup and Inter Font */
+        :root {
+            --primary: #4f46e5; /* Indigo-600 */
+            --background: #111827; /* Gray-900 */
+            --card-bg: #1f2937; /* Gray-800 */
+            --text-color: #f3f4f6; /* Gray-100 */
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background);
+            color: var(--text-color);
+        }
+        /* Custom scrollbar for a dark theme */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--card-bg);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4b5563; /* Gray-600 */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6b7280; /* Gray-500 */
+        }
+        /* Style for all select elements */
+        .component-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%239CA3AF'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd' /%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.5rem center;
+            background-size: 1.5em 1.5em;
+        }
+        /* Specific style for separator rows in the results table */
+        .separator-row td {
+            padding-top: 1.5rem;
+            font-size: 0.875rem; /* text-sm */
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #9ca3af; /* gray-400 */
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 min-h-screen flex items-start justify-center">
+
+    <div id="app-container" class="w-full max-w-7xl bg-card-bg rounded-xl shadow-2xl p-6 md:p-10 border border-indigo-700/50">
+        
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-indigo-400">Naval Component Architect</h1>
+            <p class="text-gray-400 mt-2">Check required levels and refined material amounts for your ship design.</p>
+        </header>
+
+        <!-- Loading Indicator -->
+        <div id="loading-indicator" class="text-center py-10 text-xl text-indigo-400 font-semibold hidden">
+            <div class="animate-spin inline-block w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full mr-3"></div>
+            Loading Ship Data from XML...
+        </div>
+
+        <!-- Ship Type Selection Chips -->
+        <h2 class="text-xl font-semibold mb-3 text-gray-300">Select Ship Type</h2>
+        <div class="flex space-x-3 mb-8 justify-center">
+            <button id="chip-Raft" data-ship="Raft" class="ship-chip bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-2 px-4 rounded-full shadow-md transition duration-200">Raft</button>
+            <button id="chip-Skiff" data-ship="Skiff" class="ship-chip bg-gray-600 hover:bg-indigo-600 text-white font-semibold py-2 px-4 rounded-full shadow-md transition duration-200">Skiff</button>
+            <button id="chip-Sloop" data-ship="Sloop" class="ship-chip bg-gray-600 hover:bg-indigo-600 text-white font-semibold py-2 px-4 rounded-full shadow-md transition duration-200">Sloop</button>
+        </div>
+
+        <!-- Main Content Layout (Config and Results Side-by-Side) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            
+            <!-- Component and Facility Selection Panel (Left/Top) -->
+            <div class="p-6 bg-gray-700 rounded-xl shadow-inner space-y-6 order-2 md:order-1">
+                <h2 id="input-title" class="text-2xl font-semibold mb-4 text-indigo-300">Raft Configuration</h2>
+                
+                <!-- HULL/KEEL TIER SELECTION -->
+                <div id="component-tiers" class="space-y-4">
+                    <!-- Dropdowns will be generated here -->
+                </div>
+
+                <!-- FACILITY TIER SELECTION -->
+                <div>
+                    <h3 class="text-xl font-medium text-gray-300 mb-3 border-b border-gray-600 pb-1">Facility Hotspots</h3>
+                    <div id="facility-tiers" class="space-y-4">
+                        <!-- Facility Dropdowns will be generated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Panel (Right/Bottom) -->
+            <div id="resultsArea" class="p-6 bg-gray-700 rounded-xl shadow-inner h-full order-1 md:order-2">
+                <h2 class="text-2xl font-semibold mb-4 text-indigo-300">Current Ship Simulation</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-600">
+                        <tbody id="resultsBody" class="divide-y divide-gray-600 text-lg">
+                            <!-- Results populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA STRUCTURES (Initialized to null, populated by XML) ---
+        let SHIP_BASE_STATS = null;
+        let HULL_DATA = null;
+        let KEEL_DATA = null;
+        let HELM_DATA = null;
+        let KEEP_DATA = null;
+        let SAIL_DATA = null;
+        let FACILITY_DATA = null;
+        let FACILITY_HOTSPOTS = null;
+
+        // --- ICON/ASSET DEFINITIONS ---
+        const SAILING_ICON_URL = 'https://oldschool.runescape.wiki/images/Sailing_icon.png';
+        const CONSTRUCTION_ICON_URL = 'https://oldschool.runescape.wiki/images/Construction_icon.png';
+        
+        const createIconHtml = (url) => {
+            return `<img src="${url}" class="inline-block w-4 h-4 -mt-1 mx-0.5" onerror="this.src='https://placehold.co/16x16/374151/FFFFFF?text=L'; this.alt='L';" alt="Level Icon" />`;
+        };
+        const SAILING_ICON_HTML = createIconHtml(SAILING_ICON_URL);
+        const CONSTRUCTION_ICON_HTML = createIconHtml(CONSTRUCTION_ICON_URL);
+
+        // --- Global State ---
+        let selectedShipType = 'Raft'; 
+
+        /**
+         * Parses a single component tier from XML (e.g., HULL_DATA Regular/Large).
+         * @param {Element} tierElement - The XML <Tier> element.
+         * @returns {Array<Object>} The parsed array of component parts.
+         */
+        const parseComponentTier = (tierElement) => {
+            const parts = [];
+
+            // Allow Tier-level defaults (qty_per_part, total_parts) to reduce repetition in XML
+            const tierQtyPerPart = parseInt(tierElement.getAttribute('qty_per_part') || '0');
+            const tierTotalParts = parseInt(tierElement.getAttribute('total_parts') || '0');
+
+            tierElement.querySelectorAll('Part').forEach(partEl => {
+                const levelSailing = parseInt(partEl.getAttribute('level_sailing')) || 0;
+                // If level_con is not explicitly set (like for Hull), it defaults to level_sailing
+                const levelCon = parseInt(partEl.getAttribute('level_con') || levelSailing || '0');
+
+                const qtyPerPart = parseInt(partEl.getAttribute('qty_per_part') || tierQtyPerPart || '0');
+                const totalParts = parseInt(partEl.getAttribute('total_parts') || tierTotalParts || '0');
+
+                parts.push({
+                    name: partEl.getAttribute('name'),
+                    level_sailing: levelSailing,
+                    level_con: levelCon,
+                    raw_material: partEl.getAttribute('raw_material'),
+                    qty_per_part: qtyPerPart,
+                    total_parts: totalParts,
+                });
+            });
+            return parts;
+        };
+
+        /**
+         * Fetches and parses the ship data from the external XML file.
+         */
+        async function loadShipData() {
+            const loadingIndicator = document.getElementById('loading-indicator');
+            loadingIndicator.classList.remove('hidden');
+
+            try {
+                // Exponential backoff retry logic for fetch
+                const fetchWithRetry = async (url, options, retries = 3) => {
+                    for (let i = 0; i < retries; i++) {
+                        try {
+                            const response = await fetch(url, options);
+                            if (response.ok) return response;
+                            
+                            // For non-ok responses, wait and retry unless it's the last attempt
+                            if (i < retries - 1) {
+                                const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
+                                await new Promise(resolve => setTimeout(resolve, delay));
+                            } else {
+                                throw new Error(`Fetch failed after ${retries} attempts with status: ${response.statusText}`);
+                            }
+                        } catch (error) {
+                            if (i === retries - 1) throw error;
+                            // Wait before retrying (exponential backoff)
+                            const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
+                            await new Promise(resolve => setTimeout(resolve, delay));
+                        }
+                    }
+                };
+
+                const response = await fetchWithRetry('ship_data.xml', {});
+                const xmlText = await response.text();
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlText, "application/xml");
+
+                if (xmlDoc.getElementsByTagName('parsererror').length > 0) {
+                    throw new Error('Error parsing XML file.');
+                }
+
+                // 1. Parse Ship Stats (Renamed: sailingLevel -> level_sailing, constructionLevel -> level_con)
+                SHIP_BASE_STATS = {};
+                xmlDoc.querySelectorAll('ShipStats > Ship').forEach(shipEl => {
+                    const id = shipEl.getAttribute('id');
+                    SHIP_BASE_STATS[id] = {
+                        name: shipEl.getAttribute('name'),
+                        speed: parseFloat(shipEl.getAttribute('speed')),
+                        hp: parseInt(shipEl.getAttribute('hp')),
+                        level_sailing: parseInt(shipEl.getAttribute('level_sailing')),
+                        level_con: parseInt(shipEl.getAttribute('level_con')),
+                    };
+                });
+                
+                // 2. Parse Core Components
+                HULL_DATA = {};
+                KEEL_DATA = {};
+                HELM_DATA = {};
+                KEEP_DATA = {};
+                SAIL_DATA = {};
+                
+                const componentMaps = { HULL_DATA, KEEL_DATA, HELM_DATA, KEEP_DATA, SAIL_DATA };
+
+                xmlDoc.querySelectorAll('ComponentDefinitions > ComponentType').forEach(typeEl => {
+                    const typeName = typeEl.getAttribute('name');
+                    const targetMap = componentMaps[typeName];
+                    
+                    if (targetMap) {
+                        typeEl.querySelectorAll('Tier').forEach(tierEl => {
+                            const tierType = tierEl.getAttribute('type');
+                            targetMap[tierType] = parseComponentTier(tierEl);
+                        });
+                    }
+                });
+
+                // 3. Parse Facilities (Renamed: S -> level_sailing, C -> level_con)
+                FACILITY_DATA = {};
+                xmlDoc.querySelectorAll('FacilityDefinitions > Facility').forEach(facilityEl => {
+                    const name = facilityEl.getAttribute('name');
+                    
+                    FACILITY_DATA[name] = {
+                        level_sailing: parseInt(facilityEl.getAttribute('level_sailing')),
+                        level_con: parseInt(facilityEl.getAttribute('level_con')),
+                        label: facilityEl.getAttribute('label') || name,
+                        raw_material: facilityEl.getAttribute('raw_material'),
+                        qty_per_part: parseInt(facilityEl.getAttribute('qty_per_part')),
+                        total_parts: parseInt(facilityEl.getAttribute('total_parts')),
+                    };
+                });
+
+                const ALL_FACILITIES = Object.keys(FACILITY_DATA).filter(n => n !== 'None');
+                
+                const RAFT_FACILITIES_OPTIONS = ALL_FACILITIES.filter(name => 
+                    name.includes('cargo')  || name.includes('Wind catcher') || name.includes('Range') || name.includes('Keg') || name.includes('Teleport focus')
+                );
+                
+                const SKIFF_FACILITIES_OPTIONS = ALL_FACILITIES.filter(name => 
+                    !name.includes('Dragon') && !name.includes('Rosewood') && !name.includes('Eternal') && !name.includes('Fathom pearl') && !name.includes('Chum spreader')
+                );
+
+                const SLOOP_FACILITIES_OPTIONS = ALL_FACILITIES.filter(name => !name.includes('Eternal brazier')); 
+
+                FACILITY_HOTSPOTS = {
+                    'Raft': [
+                        { name: 'Slot 1 (Cargo/Station)', options: RAFT_FACILITIES_OPTIONS.filter(n => n.includes('cargo') || n.includes('Range') || n.includes('Keg')) },
+                        { name: 'Slot 2 (Combat/Skilling)', options: RAFT_FACILITIES_OPTIONS.filter(n => n.includes('cannon') || n.includes('salvaging hook')) },
+                        { name: 'Slot 3 (Movement/Misc)', options: RAFT_FACILITIES_OPTIONS.filter(n => n.includes('Wind') || n.includes('Teleport') || n.includes('Anchor')) }
+                    ],
+                    'Skiff': [
+                        { name: 'Skilling 1', options: SKIFF_FACILITIES_OPTIONS.filter(n => n.includes('salvaging hook') || n.includes('trawling net') || n.includes('Anchor')) },
+                        { name: 'Skilling 2', options: SKIFF_FACILITIES_OPTIONS.filter(n => n.includes('salvaging hook') || n.includes('trawling net') || n.includes('Anchor')) },
+                        { name: 'Cargo', options: SKIFF_FACILITIES_OPTIONS.filter(n => n.includes('cargo hold')) },
+                        { name: 'Station/Chum', options: SKIFF_FACILITIES_OPTIONS.filter(n => n.includes('Station') || n.includes('Range') || n.includes('Keg')) },
+                        { name: 'Cannon', options: SKIFF_FACILITIES_OPTIONS.filter(n => n.includes('cannon')) },
+                        { name: 'Movement 1', options: SKIFF_FACILITIES_OPTIONS.filter(n => n.includes('Wind') || n.includes('Gale') || n.includes('Teleport') || n.includes('Crystal')) },
+                        { name: 'Movement 2', options: SKIFF_FACILITIES_OPTIONS.filter(n => n.includes('Wind') || n.includes('Gale') || n.includes('Teleport') || n.includes('Crystal')) }
+                    ],
+                    'Sloop': [
+                        { name: 'Skilling 1', options: SLOOP_FACILITIES_OPTIONS.filter(n => n.includes('salvaging hook') || n.includes('trawling net') || n.includes('Anchor')) },
+                        { name: 'Skilling 2', options: SLOOP_FACILITIES_OPTIONS.filter(n => n.includes('salvaging hook') || n.includes('trawling net') || n.includes('Anchor')) },
+                        { name: 'Cargo', options: SLOOP_FACILITIES_OPTIONS.filter(n => n.includes('cargo hold')) },
+                        { name: 'Brazier/Inoculation', options: SLOOP_FACILITIES_OPTIONS.filter(n => n.includes('Inoculation') || n.includes('brazier')) },
+                        { name: 'Chum/Station', options: SLOOP_FACILITIES_OPTIONS.filter(n => n.includes('Chum') || n.includes('Salvaging station') || n.includes('Range') || n.includes('Keg')) },
+                        { name: 'Cannon 1', options: SLOOP_FACILITIES_OPTIONS.filter(n => n.includes('cannon')) },
+                        { name: 'Cannon 2', options: SLOOP_FACILITIES_OPTIONS.filter(n => n.includes('cannon')) },
+                        { name: 'Movement/Fathom', options: SLOOP_FACILITIES_OPTIONS.filter(n => n.includes('Wind') || n.includes('Gale') || n.includes('Teleport') || n.includes('Fathom')) },
+                        { name: 'Misc/Crystal', options: SLOOP_FACILITIES_OPTIONS.filter(n => n.includes('Crystal') || n.includes('Fathom')) }
+                    ]
+                };
+
+                console.log("Ship data successfully loaded and parsed from XML.");
+                loadingIndicator.classList.add('hidden');
+                
+                // Initialize the app after data is ready
+                initializeApp();
+
+            } catch (error) {
+                console.error("Error loading ship data:", error);
+                loadingIndicator.textContent = `Error loading data: ${error.message}. Check console for details.`;
+                // Prevent app initialization if data loading failed
+            }
+        }
+        
+        // --- Utility Functions ---
+
+        /**
+         * Formats a number for display (adds commas).
+         * @param {number} num - The number to format
+         * @returns {string} Formatted string
+         */
+        const formatNumber = (num) => {
+            if (num === null || isNaN(num)) return 'N/A';
+            return num.toLocaleString(); 
+        };
+        
+        /**
+         * Creates a dynamic dropdown component HTML with inline label.
+         * @param {string} id - The ID for the select element.
+         * @param {string} label - The label text for the component.
+         * @param {Array<Object>} data - Array of objects for options or array of facility names.
+         * @param {boolean} isFacility - If true, uses facility data structure.
+         * @returns {string} The HTML string for the dropdown group.
+         */
+        const createDropdownHTML = (id, label, data, isFacility = false) => {
+            let optionsHtml = '';
+            
+            if (isFacility) {
+                // Facility options: S.Lvl / C.Lvl Name
+                optionsHtml = data.map(name => {
+                    const facility = FACILITY_DATA[name];
+                    const sLvl = facility.level_sailing;
+                    const cLvl = facility.level_con;
+                    // Use S. / C. text markers for dropdown options as images are not supported
+                    return `<option value="${name}">S.${sLvl} / C.${cLvl} ${facility.label}</option>`;
+                }).join('');
+                
+                // Add 'None' option manually at the top for facilities
+                optionsHtml = `<option value="None">S.0 / C.0 None</option>` + optionsHtml;
+
+            } else {
+                // Component options: S.Lvl / C.Lvl Name
+                optionsHtml = data.map((item, index) => {
+                    const cLvl = item.level_con;
+                    // Use S. / C. text markers for dropdown options as images are not supported
+                    return `<option value="${index}">S.${item.level_sailing} / C.${cLvl} ${item.name}</option>`;
+                }).join('');
+            }
+
+            return `
+                <div class="flex items-center justify-between pb-2">
+                    <label for="${id}" class="text-sm font-medium text-gray-300 w-2/5 min-w-[120px]">${label}</label>
+                    <select id="${id}" data-type="${isFacility ? 'facility' : 'component'}" class="mt-1 block w-3/5 rounded-lg border-gray-600 bg-gray-800 component-select text-white p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        ${optionsHtml}
+                    </select>
+                </div>
+            `;
+        };
+        
+        // --- Core Calculation and Update Logic ---
+
+        /**
+         * Calculates and displays the required levels and material amounts based on component selection.
+         */
+        const updateShipStats = () => {
+            if (!SHIP_BASE_STATS) {
+                console.error("Data not loaded yet.");
+                return;
+            }
+
+            const ship = SHIP_BASE_STATS[selectedShipType];
+            
+            // Stores material consumption across all components and facilities { MaterialName: TotalQty }
+            const materialConsumption = {}; 
+            
+            // Renamed base stats to use the new names
+            let maxSailingLevel = ship.level_sailing;
+            let maxConstructionLevel = ship.level_con;
+            
+            const componentResults = []; // Stores details for the Core Component breakdown
+            const facilityResults = []; // Stores details for the Facility breakdown
+
+            // Helper function to aggregate materials
+            const addMaterial = (materialName, qty) => {
+                if (materialName && qty > 0 && materialName !== 'None') {
+                    materialConsumption[materialName] = (materialConsumption[materialName] || 0) + qty;
+                }
+            };
+
+            // 1. CORE COMPONENT CALCULATION 
+            const componentType = selectedShipType === 'Sloop' ? 'Large' : 'Regular';
+            
+            const componentMaps = {
+                'hull_tier': HULL_DATA[componentType],
+                'keel_tier': KEEL_DATA[componentType],
+                'helm_tier': HELM_DATA[componentType],
+                'keep_tier': KEEP_DATA[componentType],
+                'sail_tier': SAIL_DATA[componentType]
+            };
+
+            for (const id in componentMaps) {
+                const map = componentMaps[id];
+                const selectEl = document.getElementById(id);
+                if (selectEl) {
+                    const index = parseInt(selectEl.value);
+                    const component = map[index];
+                    if (component) {
+                        // Update max levels using the new property names
+                        maxSailingLevel = Math.max(maxSailingLevel, component.level_sailing);
+                        maxConstructionLevel = Math.max(maxConstructionLevel, component.level_con);
+
+                        // Store component consumption details and aggregate materials
+                        const totalRawMaterialQty = component.qty_per_part * component.total_parts;
+                        componentResults.push({
+                            type: component.name, // e.g., 'Oak Hull'
+                            rawMaterial: component.raw_material, // e.g., 'Oak Plank'
+                            totalQty: totalRawMaterialQty, // e.g., 50
+                        });
+                        addMaterial(component.raw_material, totalRawMaterialQty);
+                    }
+                }
+            }
+            
+            // 2. FACILITY LEVEL & MATERIAL CALCULATION
+            document.querySelectorAll('#facility-tiers select').forEach(selectEl => {
+                const facilityName = selectEl.value;
+                const facility = FACILITY_DATA[facilityName];
+                
+                if (facility && facilityName !== 'None') {
+                    // Update max levels using the new property names
+                    maxSailingLevel = Math.max(maxSailingLevel, facility.level_sailing);
+                    maxConstructionLevel = Math.max(maxConstructionLevel, facility.level_con);
+                    
+                    // Calculate and aggregate materials
+                    const totalRawMaterialQty = facility.qty_per_part * facility.total_parts;
+
+                    // Store facility details for the breakdown
+                    facilityResults.push({
+                        name: facility.label,
+                        sLevel: facility.level_sailing, // New property name used for display
+                        cLevel: facility.level_con,     // New property name used for display
+                        rawMaterial: facility.raw_material,
+                        totalQty: totalRawMaterialQty,
+                    });
+                    addMaterial(facility.raw_material, totalRawMaterialQty);
+                }
+            });
+
+            // 3. Prepare Base Results Array
+            const results = [
+                { metric: "Selected Ship Type", value: ship.name, color: 'text-indigo-400' },
+                // Use new property names for display
+                { metric: "Base Ship Levels (S/C)", value: `Lvl ${ship.level_sailing} / Lvl ${ship.level_con}`, color: 'text-gray-200' },
+                // Max levels required by ALL selected components and facilities
+                { metric: `Max Sailing Lvl ${SAILING_ICON_HTML}`, value: `Lvl ${maxSailingLevel}`, color: 'text-yellow-200' },
+                { metric: `Max Construction Lvl ${CONSTRUCTION_ICON_HTML}`, value: `Lvl ${maxConstructionLevel}`, color: 'text-yellow-200' },
+                { metric: "Base HP / Speed", value: `${ship.hp} HP / ${ship.speed} Speed`, color: 'text-gray-300' },
+            ];
+
+            // 4. Add TOTAL Material Consumption Summary
+            const materialKeys = Object.keys(materialConsumption);
+            if (materialKeys.length > 0) {
+                results.push({ metric: `--- TOTAL REFINED MATERIALS REQUIRED ---`, isSeparator: true });
+                
+                // Sort materials alphabetically for clean display
+                materialKeys.sort().forEach(material => {
+                    results.push({
+                        metric: material, 
+                        value: formatNumber(materialConsumption[material]), 
+                        color: 'text-green-300',
+                        isTotalMaterial: true // Custom flag for visual style
+                    });
+                });
+            }
+
+            // 5. Add Detailed Component Breakdown Section
+            if (componentResults.length > 0) {
+                results.push({ metric: `--- CORE COMPONENT BREAKDOWN ---`, isSeparator: true });
+                
+                componentResults.forEach(c => {
+                    results.push({
+                        metric: c.type, // e.g., 'Oak Hull'
+                        // Formatted to show the total number of the refined material needed
+                        value: `${formatNumber(c.totalQty)} x ${c.rawMaterial}`, 
+                        color: 'text-gray-300',
+                        isDetail: true
+                    });
+                });
+            }
+
+            // 6. Add Installed Facilities & Detailed Material Breakdown
+            if (facilityResults.length > 0) {
+                results.push({ metric: `--- INSTALLED FACILITIES & REQUIREMENTS ---`, isSeparator: true });
+                
+                facilityResults.forEach(f => {
+                    results.push({
+                        metric: f.name,
+                        // Includes both levels and material consumption in one line
+                        value: `S.${f.sLevel}/C.${f.cLevel} (${formatNumber(f.totalQty)}x ${f.rawMaterial})`,
+                        color: 'text-orange-300',
+                        isFacilityDetail: true
+                    });
+                });
+            }
+
+
+            // 7. Render Results 
+            const resultsBody = document.getElementById('resultsBody');
+            resultsBody.innerHTML = ''; 
+
+            results.forEach(res => {
+                const row = document.createElement('tr');
+                const valueClass = res.color ? res.color : 'text-gray-200';
+                
+                // Add separator class and ensure all rows respect one-line rule
+                row.className = res.isSeparator 
+                    ? 'separator-row' 
+                    : 'hover:bg-gray-600 transition duration-100 whitespace-nowrap';
+                
+                // Handle separator (spans two columns)
+                if (res.isSeparator) {
+                    row.innerHTML = `<td colspan="2" class="py-2 pr-4 text-gray-400 font-medium">${res.metric.replace(/---/g, '').trim()}</td>`;
+                } else {
+                    // Normal stat/material/facility row
+                    row.innerHTML = `
+                        <td class="py-2 pr-4 text-gray-400 font-medium">${res.metric}</td>
+                        <td class="py-2 font-bold ${valueClass} text-right">${res.value}</td>
+                    `;
+                }
+                resultsBody.appendChild(row);
+            });
+
+            document.getElementById('resultsArea').classList.remove('hidden');
+        }
+
+        /**
+         * Handles the selection of a ship type chip and updates the UI.
+         * @param {string} shipType - The type of ship selected ('Raft', 'Skiff', 'Sloop').
+         */
+        const selectShipType = (shipType) => {
+            if (!FACILITY_HOTSPOTS) return; // Guard clause until data is loaded
+            
+            selectedShipType = shipType;
+            const componentTiersDiv = document.getElementById('component-tiers');
+            const facilityTiersDiv = document.getElementById('facility-tiers');
+            const inputTitle = document.getElementById('input-title');
+            
+            componentTiersDiv.innerHTML = '';
+            facilityTiersDiv.innerHTML = '';
+            inputTitle.textContent = `${shipType} Configuration`;
+
+
+            // Determine the correct component tier label for the input section header
+            let componentTierLabel = '';
+            if (shipType === 'Raft') {
+                componentTierLabel = 'Planks';
+            } else if (shipType === 'Skiff') {
+                componentTierLabel = 'Parts';
+            } else if (shipType === 'Sloop') {
+                componentTierLabel = 'Large Parts';
+            }
+
+            // 1. --- HULL/KEEL COMPONENT TIERS ---
+            const componentKey = (shipType === 'Raft' || shipType === 'Skiff') ? 'Regular' : 'Large';
+            
+            componentTiersDiv.innerHTML = `
+                <h3 class="text-xl font-medium text-gray-300 mb-3 border-b border-gray-600 pb-1">Core Components (5 Slots - ${componentTierLabel})</h3>
+                ${createDropdownHTML('hull_tier', `Hull Tier`, HULL_DATA[componentKey])}
+                ${createDropdownHTML('keel_tier', `Keel Tier`, KEEL_DATA[componentKey])}
+                ${createDropdownHTML('helm_tier', `Helm Tier`, HELM_DATA[componentKey])}
+                ${createDropdownHTML('keep_tier', `Keep Tier`, KEEP_DATA[componentKey])}
+                ${createDropdownHTML('sail_tier', `Sails Tier`, SAIL_DATA[componentKey])}
+            `;
+            
+            // Attach listeners
+            document.getElementById('hull_tier').onchange = updateShipStats;
+            document.getElementById('keel_tier').onchange = updateShipStats;
+            document.getElementById('helm_tier').onchange = updateShipStats;
+            document.getElementById('keep_tier').onchange = updateShipStats;
+            document.getElementById('sail_tier').onchange = updateShipStats;
+
+
+            // 2. --- FACILITY HOTSPOT TIERS ---
+            const hotspots = FACILITY_HOTSPOTS[shipType];
+            
+            hotspots.forEach((hotspot, index) => {
+                
+                const dropdownHtml = createDropdownHTML(
+                    `facility_slot_${index}`, 
+                    `${hotspot.name}`, 
+                    hotspot.options, 
+                    true // isFacility
+                );
+                facilityTiersDiv.innerHTML += dropdownHtml;
+            });
+            
+            // Attach listeners to all newly created facility dropdowns
+            document.querySelectorAll('#facility-tiers select').forEach(selectEl => {
+                selectEl.onchange = updateShipStats;
+            });
+
+            // 3. Update Chip Styles
+            document.querySelectorAll('.ship-chip').forEach(chip => {
+                if (chip.dataset.ship === shipType) {
+                    chip.classList.remove('bg-gray-600');
+                    chip.classList.add('bg-indigo-500');
+                } else {
+                    chip.classList.remove('bg-indigo-500');
+                    chip.classList.add('bg-gray-600');
+                }
+            });
+
+            // 4. Run the initial calculation for the selected configuration
+            updateShipStats();
+        }
+
+
+        // --- Initialization ---
+
+        window.onload = loadShipData;
+
+    </script>
+</body>
+</html>
