@@ -26,10 +26,6 @@ const buildShipChips = (ships, defaultShipId) => {
     const container = document.getElementById('ship-chips');
     if (!container) return;
     container.innerHTML = '';
-
-    // If no default ship passed, pick first available
-    if (!defaultShipId && Array.isArray(ships) && ships.length) defaultShipId = ships[0].id;
-
     ships.forEach(ship => {
         const button = document.createElement('button');
         button.className = `ship-chip bg-gray-600 hover:bg-indigo-600 text-white font-semibold py-2 px-4 rounded-full shadow-md transition duration-200`;
@@ -50,12 +46,6 @@ const buildShipChips = (ships, defaultShipId) => {
             const title = document.getElementById('input-title');
             if (title) title.textContent = `${ship.name} Configuration`;
             window.appState.selectedShipId = ship.id;
-            // Rebuild selectors (with current ship context) so the available options are restricted
-            // according to the selected ship type (e.g., Raft uses planks only; Skiff uses regular keel; Sloop uses large keel).
-            if (window.appState && window.appState.shipData) {
-                buildComponentSelectors(window.appState.shipData.ComponentDefinitions);
-                buildFacilitySelectors(window.appState.shipData.FacilityDefinitions, 4);
-            }
             updateResults();
         });
         container.appendChild(button);
@@ -67,34 +57,7 @@ const buildComponentSelectors = (componentDefinitions) => {
     if (!container) return;
     container.innerHTML = '';
 
-    const shipId = window.appState && window.appState.selectedShipId;
-
-    // decide if an option is allowed for this ship
-    const isPartAllowedForShip = (shipId, compKey, tier, part) => {
-        if (!shipId) return true;
-        const sid = String(shipId);
-        const material = (part.raw_material || '').toLowerCase();
-
-        // Raft: only plank-based components allowed
-        if (sid === 'Raft') {
-            return material.includes('plank');
-        }
-        // Skiff / Sloop: specific keel restrictions
-        if (compKey === 'KEEL_DATA') {
-            if (sid === 'Skiff') return (tier.type || '').toLowerCase() === 'regular';
-            if (sid === 'Sloop') return (tier.type || '').toLowerCase() === 'large';
-        }
-        return true;
-    };
-
     Object.keys(componentDefinitions).forEach(compKey => {
-        // Hide the keel selector for Raft ships entirely
-        if (compKey === 'KEEL_DATA' && shipId === 'Raft') {
-            if (window.appState && window.appState.selectedComponents) {
-                window.appState.selectedComponents[compKey] = null;
-            }
-            return; // skip adding this component row completely
-        }
         const friendly = friendlyKeyToName(compKey);
         const wrapper = document.createElement('div');
         wrapper.className = 'component-row';
@@ -119,7 +82,6 @@ const buildComponentSelectors = (componentDefinitions) => {
             const tierTotalParts = tier.total_parts || 0;
 
             (tier.parts || []).forEach((part, partIndex) => {
-                if (!isPartAllowedForShip(shipId, compKey, tier, part)) return; // skip options not allowed
                 const option = document.createElement('option');
                 option.value = `${compKey}|${tierIndex}|${partIndex}`;
                 option.text = `${tier.type}: ${part.name} (S:${part.level_sailing || 0} C:${part.level_con || part.level_sailing || 0})`;
@@ -132,7 +94,7 @@ const buildComponentSelectors = (componentDefinitions) => {
             });
         });
 
-        // Attempt to restore a previous selection if this comp had one; otherwise select the first valid option
+        // If any real option exists, preselect the first (after placeholder) so results populate
         select.addEventListener('change', () => {
             window.appState.selectedComponents[compKey] = select.value || null;
             updateResults();
@@ -142,24 +104,11 @@ const buildComponentSelectors = (componentDefinitions) => {
         wrapper.appendChild(select);
         container.appendChild(wrapper);
 
-        // Try to restore previous selection (if it's still allowed)
-        const prevSelection = window.appState && window.appState.selectedComponents ? window.appState.selectedComponents[compKey] : null;
-        let restored = false;
-        if (prevSelection) {
-            for (let i=0; i<select.options.length; i++) {
-                if (select.options[i].value === prevSelection) {
-                    select.selectedIndex = i;
-                    restored = true;
-                    break;
-                }
-            }
-        }
-        // If no restored selection and we have at least one real option, select that
-        if (!restored && select.options && select.options.length > 1) {
-            select.selectedIndex = 1;
+        // Preselect first real option (if present)
+        if (select.options && select.options.length > 1) {
+            select.selectedIndex = 1; // choose first available option
             window.appState.selectedComponents[compKey] = select.value;
-            select.dispatchEvent(new Event('change'));
-        } else if (!restored) {
+        } else {
             window.appState.selectedComponents[compKey] = null;
         }
     });
@@ -172,15 +121,6 @@ const buildFacilitySelectors = (facilityDefinitions, count = 4) => {
     const container = document.getElementById('facility-tiers');
     if (!container) return;
     container.innerHTML = '';
-    const shipId = window.appState && window.appState.selectedShipId;
-
-    const isFacilityAllowedForShip = (shipId, fac) => {
-        if (!shipId) return true;
-        const sid = String(shipId);
-        const material = (fac.raw_material || '').toLowerCase();
-        if (sid === 'Raft') return material.includes('plank');
-        return true;
-    };
     for (let i = 0; i < count; i++) {
         const wrapper = document.createElement('div');
         wrapper.className = 'facility-row';
@@ -199,7 +139,6 @@ const buildFacilitySelectors = (facilityDefinitions, count = 4) => {
         select.appendChild(noneOption);
 
         (facilityDefinitions || []).forEach((fac, idx) => {
-            if (!isFacilityAllowedForShip(shipId, fac)) return; // skip facilities not allowed for this ship
             const option = document.createElement('option');
             option.value = `${idx}`;
             option.text = `${fac.label} (S:${fac.level_sailing}, C:${fac.level_con})`;
@@ -222,20 +161,8 @@ const buildFacilitySelectors = (facilityDefinitions, count = 4) => {
         wrapper.appendChild(select);
         container.appendChild(wrapper);
 
-        // default to None initially; try to restore previous choice if it's still allowed
-        const prev = (window.appState && window.appState.selectedFacilities) ? window.appState.selectedFacilities[i] : null;
-        if (prev !== null && prev !== undefined) {
-            // only restore if the facility index was kept as an option (we used the original idx values for option.value)
-            const allowedValues = Array.from(select.options).map(o => o.value);
-            if (allowedValues.includes(String(prev))) {
-                select.value = String(prev);
-                window.appState.selectedFacilities[i] = prev;
-            } else {
-                window.appState.selectedFacilities[i] = null;
-            }
-        } else {
-            window.appState.selectedFacilities[i] = null;
-        }
+        // default to None initially
+        window.appState.selectedFacilities[i] = null;
     }
 };
 
@@ -419,67 +346,4 @@ const initApp = async () => {
     }
 };
 
-// add backward-compatible global entrypoint expected by older code and scripts that call "initializeApp"
-// Accepts parsed JSON-like ship data or falls back to fetching JSON if called with no argument.
-window.initializeApp = (parsedShipData = null) => {
-    if (parsedShipData) {
-        if (!window.appState) {
-            window.appState = {
-                shipData: parsedShipData,
-                selectedShipId: (parsedShipData.ShipStats && parsedShipData.ShipStats[0] && parsedShipData.ShipStats[0].id) || null,
-                selectedComponents: {},
-                selectedFacilities: [null, null, null, null],
-            };
-        } else {
-            window.appState.shipData = parsedShipData;
-            if (!window.appState.selectedShipId && parsedShipData.ShipStats && parsedShipData.ShipStats[0]) {
-                window.appState.selectedShipId = parsedShipData.ShipStats[0].id;
-            }
-        }
-
-        // build UI and populate
-        buildShipChips(parsedShipData.ShipStats, window.appState.selectedShipId);
-        buildComponentSelectors(parsedShipData.ComponentDefinitions);
-        buildFacilitySelectors(parsedShipData.FacilityDefinitions, 4);
-        updateResults();
-        console.log('initializeApp: setup complete from provided ship data.');
-    } else {
-        // fallback: use initApp to fetch data from ship_data.json
-        initApp();
-    }
-};
-
-// lightweight alias for older callers that used loadShipData(parsedData)
-window.loadShipData = (data) => {
-    // If argument is an XML Document (older code parsed XML), try to convert to JSON-like object
-    if (data && typeof data === 'object' && data.documentElement) {
-        // simple XML -> JSON parsing: convert tags into structure expected
-        try {
-            const xmlDoc = data;
-            // Very minimal conversion: if it's the XML schema you expect, adapt accordingly.
-            // For safety, prefer callers to pass JSON — just forward the full XML raw as an error message for now.
-            console.warn('loadShipData: Received XML Document — please pass parsed JSON if possible.');
-            // We don't handle full XML parsing here; optionally parse it if needed.
-            window.initializeApp(); // fallback to fetching JSON
-            return;
-        } catch (err) {
-            console.error('loadShipData: XML parsing failed, falling back to fetch JSON', err);
-            window.initializeApp();
-            return;
-        }
-    }
-
-    // assume JSON-like object (already parsed)
-    if (data && data.ShipStats) {
-        window.initializeApp(data);
-    } else {
-        // no data supplied — fetch automatically
-        window.initializeApp();
-    }
-};
-
-// expose initApp to global in case anything calls that name explicitly
-window.initApp = initApp;
-
-// on legacy pages or older scripts that invoked loadShipData immediately, ensure we can be called from global scope
-console.debug('Ship builder script loaded, initApp & initializeApp available.');
+window.addEventListener('DOMContentLoaded', initApp);
