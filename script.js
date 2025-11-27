@@ -50,6 +50,12 @@ const buildShipChips = (ships, defaultShipId) => {
             const title = document.getElementById('input-title');
             if (title) title.textContent = `${ship.name} Configuration`;
             window.appState.selectedShipId = ship.id;
+            // Rebuild selectors (with current ship context) so the available options are restricted
+            // according to the selected ship type (e.g., Raft uses planks only; Skiff uses regular keel; Sloop uses large keel).
+            if (window.appState && window.appState.shipData) {
+                buildComponentSelectors(window.appState.shipData.ComponentDefinitions);
+                buildFacilitySelectors(window.appState.shipData.FacilityDefinitions, 4);
+            }
             updateResults();
         });
         container.appendChild(button);
@@ -61,7 +67,34 @@ const buildComponentSelectors = (componentDefinitions) => {
     if (!container) return;
     container.innerHTML = '';
 
+    const shipId = window.appState && window.appState.selectedShipId;
+
+    // decide if an option is allowed for this ship
+    const isPartAllowedForShip = (shipId, compKey, tier, part) => {
+        if (!shipId) return true;
+        const sid = String(shipId);
+        const material = (part.raw_material || '').toLowerCase();
+
+        // Raft: only plank-based components allowed
+        if (sid === 'Raft') {
+            return material.includes('plank');
+        }
+        // Skiff / Sloop: specific keel restrictions
+        if (compKey === 'KEEL_DATA') {
+            if (sid === 'Skiff') return (tier.type || '').toLowerCase() === 'regular';
+            if (sid === 'Sloop') return (tier.type || '').toLowerCase() === 'large';
+        }
+        return true;
+    };
+
     Object.keys(componentDefinitions).forEach(compKey => {
+        // Hide the keel selector for Raft ships entirely
+        if (compKey === 'KEEL_DATA' && shipId === 'Raft') {
+            if (window.appState && window.appState.selectedComponents) {
+                window.appState.selectedComponents[compKey] = null;
+            }
+            return; // skip adding this component row completely
+        }
         const friendly = friendlyKeyToName(compKey);
         const wrapper = document.createElement('div');
         wrapper.className = 'component-row';
@@ -86,6 +119,7 @@ const buildComponentSelectors = (componentDefinitions) => {
             const tierTotalParts = tier.total_parts || 0;
 
             (tier.parts || []).forEach((part, partIndex) => {
+                if (!isPartAllowedForShip(shipId, compKey, tier, part)) return; // skip options not allowed
                 const option = document.createElement('option');
                 option.value = `${compKey}|${tierIndex}|${partIndex}`;
                 option.text = `${tier.type}: ${part.name} (S:${part.level_sailing || 0} C:${part.level_con || part.level_sailing || 0})`;
@@ -98,7 +132,7 @@ const buildComponentSelectors = (componentDefinitions) => {
             });
         });
 
-        // If any real option exists, preselect the first (after placeholder) so results populate
+        // Attempt to restore a previous selection if this comp had one; otherwise select the first valid option
         select.addEventListener('change', () => {
             window.appState.selectedComponents[compKey] = select.value || null;
             updateResults();
@@ -108,13 +142,24 @@ const buildComponentSelectors = (componentDefinitions) => {
         wrapper.appendChild(select);
         container.appendChild(wrapper);
 
-        // Preselect first real option (if present) and ensure change handler runs so results populate
-        if (select.options && select.options.length > 1) {
-            select.selectedIndex = 1; // choose first available option
+        // Try to restore previous selection (if it's still allowed)
+        const prevSelection = window.appState && window.appState.selectedComponents ? window.appState.selectedComponents[compKey] : null;
+        let restored = false;
+        if (prevSelection) {
+            for (let i=0; i<select.options.length; i++) {
+                if (select.options[i].value === prevSelection) {
+                    select.selectedIndex = i;
+                    restored = true;
+                    break;
+                }
+            }
+        }
+        // If no restored selection and we have at least one real option, select that
+        if (!restored && select.options && select.options.length > 1) {
+            select.selectedIndex = 1;
             window.appState.selectedComponents[compKey] = select.value;
-            // trigger change so the handler runs and results update
             select.dispatchEvent(new Event('change'));
-        } else {
+        } else if (!restored) {
             window.appState.selectedComponents[compKey] = null;
         }
     });
@@ -127,6 +172,15 @@ const buildFacilitySelectors = (facilityDefinitions, count = 4) => {
     const container = document.getElementById('facility-tiers');
     if (!container) return;
     container.innerHTML = '';
+    const shipId = window.appState && window.appState.selectedShipId;
+
+    const isFacilityAllowedForShip = (shipId, fac) => {
+        if (!shipId) return true;
+        const sid = String(shipId);
+        const material = (fac.raw_material || '').toLowerCase();
+        if (sid === 'Raft') return material.includes('plank');
+        return true;
+    };
     for (let i = 0; i < count; i++) {
         const wrapper = document.createElement('div');
         wrapper.className = 'facility-row';
@@ -145,6 +199,7 @@ const buildFacilitySelectors = (facilityDefinitions, count = 4) => {
         select.appendChild(noneOption);
 
         (facilityDefinitions || []).forEach((fac, idx) => {
+            if (!isFacilityAllowedForShip(shipId, fac)) return; // skip facilities not allowed for this ship
             const option = document.createElement('option');
             option.value = `${idx}`;
             option.text = `${fac.label} (S:${fac.level_sailing}, C:${fac.level_con})`;
@@ -167,8 +222,20 @@ const buildFacilitySelectors = (facilityDefinitions, count = 4) => {
         wrapper.appendChild(select);
         container.appendChild(wrapper);
 
-        // default to None initially
-        window.appState.selectedFacilities[i] = null;
+        // default to None initially; try to restore previous choice if it's still allowed
+        const prev = (window.appState && window.appState.selectedFacilities) ? window.appState.selectedFacilities[i] : null;
+        if (prev !== null && prev !== undefined) {
+            // only restore if the facility index was kept as an option (we used the original idx values for option.value)
+            const allowedValues = Array.from(select.options).map(o => o.value);
+            if (allowedValues.includes(String(prev))) {
+                select.value = String(prev);
+                window.appState.selectedFacilities[i] = prev;
+            } else {
+                window.appState.selectedFacilities[i] = null;
+            }
+        } else {
+            window.appState.selectedFacilities[i] = null;
+        }
     }
 };
 
