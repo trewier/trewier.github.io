@@ -26,6 +26,10 @@ const buildShipChips = (ships, defaultShipId) => {
     const container = document.getElementById('ship-chips');
     if (!container) return;
     container.innerHTML = '';
+
+    // If no default ship passed, pick first available
+    if (!defaultShipId && Array.isArray(ships) && ships.length) defaultShipId = ships[0].id;
+
     ships.forEach(ship => {
         const button = document.createElement('button');
         button.className = `ship-chip bg-gray-600 hover:bg-indigo-600 text-white font-semibold py-2 px-4 rounded-full shadow-md transition duration-200`;
@@ -104,10 +108,12 @@ const buildComponentSelectors = (componentDefinitions) => {
         wrapper.appendChild(select);
         container.appendChild(wrapper);
 
-        // Preselect first real option (if present)
+        // Preselect first real option (if present) and ensure change handler runs so results populate
         if (select.options && select.options.length > 1) {
             select.selectedIndex = 1; // choose first available option
             window.appState.selectedComponents[compKey] = select.value;
+            // trigger change so the handler runs and results update
+            select.dispatchEvent(new Event('change'));
         } else {
             window.appState.selectedComponents[compKey] = null;
         }
@@ -346,4 +352,67 @@ const initApp = async () => {
     }
 };
 
-window.addEventListener('DOMContentLoaded', initApp);
+// add backward-compatible global entrypoint expected by older code and scripts that call "initializeApp"
+// Accepts parsed JSON-like ship data or falls back to fetching JSON if called with no argument.
+window.initializeApp = (parsedShipData = null) => {
+    if (parsedShipData) {
+        if (!window.appState) {
+            window.appState = {
+                shipData: parsedShipData,
+                selectedShipId: (parsedShipData.ShipStats && parsedShipData.ShipStats[0] && parsedShipData.ShipStats[0].id) || null,
+                selectedComponents: {},
+                selectedFacilities: [null, null, null, null],
+            };
+        } else {
+            window.appState.shipData = parsedShipData;
+            if (!window.appState.selectedShipId && parsedShipData.ShipStats && parsedShipData.ShipStats[0]) {
+                window.appState.selectedShipId = parsedShipData.ShipStats[0].id;
+            }
+        }
+
+        // build UI and populate
+        buildShipChips(parsedShipData.ShipStats, window.appState.selectedShipId);
+        buildComponentSelectors(parsedShipData.ComponentDefinitions);
+        buildFacilitySelectors(parsedShipData.FacilityDefinitions, 4);
+        updateResults();
+        console.log('initializeApp: setup complete from provided ship data.');
+    } else {
+        // fallback: use initApp to fetch data from ship_data.json
+        initApp();
+    }
+};
+
+// lightweight alias for older callers that used loadShipData(parsedData)
+window.loadShipData = (data) => {
+    // If argument is an XML Document (older code parsed XML), try to convert to JSON-like object
+    if (data && typeof data === 'object' && data.documentElement) {
+        // simple XML -> JSON parsing: convert tags into structure expected
+        try {
+            const xmlDoc = data;
+            // Very minimal conversion: if it's the XML schema you expect, adapt accordingly.
+            // For safety, prefer callers to pass JSON — just forward the full XML raw as an error message for now.
+            console.warn('loadShipData: Received XML Document — please pass parsed JSON if possible.');
+            // We don't handle full XML parsing here; optionally parse it if needed.
+            window.initializeApp(); // fallback to fetching JSON
+            return;
+        } catch (err) {
+            console.error('loadShipData: XML parsing failed, falling back to fetch JSON', err);
+            window.initializeApp();
+            return;
+        }
+    }
+
+    // assume JSON-like object (already parsed)
+    if (data && data.ShipStats) {
+        window.initializeApp(data);
+    } else {
+        // no data supplied — fetch automatically
+        window.initializeApp();
+    }
+};
+
+// expose initApp to global in case anything calls that name explicitly
+window.initApp = initApp;
+
+// on legacy pages or older scripts that invoked loadShipData immediately, ensure we can be called from global scope
+console.debug('Ship builder script loaded, initApp & initializeApp available.');
